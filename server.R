@@ -2,31 +2,42 @@ server <- function(input, output, session) {
   
   # Define variables for choices of rainfall pattern and season
   rainPattern <- c("Unimodal", "Bimodal")
-  rainSeason <- c("Long Rains", "Short Rains", "Single Rains")
-  biRainSeason <- c("Long Rains", "Short Rains")
-  singleRainSeason <- c("Single Rains")
+  # rainSeason <- c("Long Rains", "Short Rains", "Single Rains")
+  # biRainSeason <- c("Long Rains", "Short Rains")
+  # singleRainSeason <- c("Single Rains")
   yearMonths <- c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
   
   
-  ######################################################################
-    
-  # Observe choice of rainfall pattern to inform choice of season
-  observe({
-    if(req(input$pattern) == "Bimodal") {
-      updateSelectInput(session, "season", 
-                        choices = biRainSeason, 
-                        selected = isolate("Long Rains") )
+  # ###########Observe rainfall pattern to determine season#########################################
+  #   
+  # # Observe choice of rainfall pattern to inform choice of season
+  # observe({
+  #   if(req(input$pattern) == "Bimodal") {
+  #     updateSelectInput(session, "season", 
+  #                       choices = biRainSeason, 
+  #                       selected = isolate("Long Rains") )
+  #   }
+  # })
+  # 
+  # observe({
+  #   if(req(input$pattern) == "Unimodal")
+  #     updateSelectInput(session, "season",
+  #                       choices = singleRainSeason,
+  #                       selected = isolate("Single Rains") )
+  # })
+  # ######################################################################
+  
+  ###################################
+  observeEvent(input$pattern, {
+    if (input$pattern == "Unimodal") {
+      shinyjs::show("unimodaldates")
+      shinyjs::hide("bimodaldates")
+    } else {
+      shinyjs::hide("unimodaldates")
+      shinyjs::show("bimodaldates")
     }
   })
-  
-  observe({
-    if(req(input$pattern) == "Unimodal")
-      updateSelectInput(session, "season",
-                        choices = singleRainSeason,
-                        selected = isolate("Single Rains") )
-  })
-  ######################################################################
-  
+  ###################################
   
   output$sidebarpanel <- renderUI({
     shinydashboard::sidebarMenu(
@@ -56,27 +67,80 @@ server <- function(input, output, session) {
                                       selectInput(inputId = "uai", label = "UAI", 
                                                   choices = c("Ajaj", "Murhal", "Alaf", "Eena", "Daoul"), 
                                                   selected = "Ajaj"),
-                                      selectInput(inputId = "pattern", label = "Rainfall Pattern", 
-                                                  choices = rainPattern,
-                                                  selected = "Unimodal"),
-                                      selectInput(inputId = "startmonth", label = "Start Month", 
-                                                  choices = yearMonths, selected = "March"),
+                                      selectInput(inputId = "suminsured", label = "Policy Sum Insured", 
+                                                  choices = seq(50, 300, 10), 
+                                                  selected = 100),
                                       selectInput(inputId = "triggerlevel", label = "Trigger Level (Percentile Value)", 
                                                   choices = seq(0.1, 1, 0.05), selected = 0.2),
                                     ),
                                     column(
                                       width = 6,
+                                      selectInput(inputId = "pattern", label = "Rainfall Pattern", 
+                                                  choices = rainPattern,
+                                                  selected = "Unimodal"),
                                       selectInput(inputId = "maxpayout", label = "Policy Maximum Payout", 
                                                   choices = seq(0.5, 1, 0.1), selected = 1),
-                                      selectInput(inputId = "season", label = "Rainfall Season", 
-                                                  choices = rainSeason, 
-                                                  selected = "Single Rains"),
-                                      selectInput(inputId = "endmonth", label = "End Month", 
-                                                  choices = yearMonths, selected = "June"),
                                       selectInput(inputId = "exitoption", label = "Exit Level", 
                                                   choices = c("Minimum", "1st Percentile", "5th Percentile"), selected = "5th Percentile")
                                     )
                                   ),
+                                  tags$div(
+                                    id = "unimodaldates", 
+                                    style = "display: none;",
+                                    fluidRow(
+                                      column(
+                                        width=6,
+                                        selectInput(inputId = "statmonth", label = "Start Month", 
+                                                    choices = yearMonths, selected = "November")
+                                      ),
+                                      column(
+                                        width=6,
+                                        selectInput(inputId = "edmonth", label = "End Month", 
+                                                    choices = yearMonths, selected = "May")
+                                      )
+                                    )),
+                                  tags$div(
+                                    id = "unimodaldates", 
+                                    style = "display: none;",
+                                    fluidRow(
+                                      column(
+                                        width=6,
+                                        selectInput(inputId = "startmonth", label = "Start Month", 
+                                                    choices = yearMonths, selected = "November")
+                                      ),
+                                      column(
+                                        width=6,
+                                        selectInput(inputId = "endmonth", label = "End Month", 
+                                                    choices = yearMonths, selected = "May")
+                                      )
+                                    )),
+                                  tags$div(
+                                    id = "bimodaldates", 
+                                    style = "display: none;",
+                                    fluidRow(
+                                      column(
+                                        width=6,
+                                        selectInput(inputId = "lrldstartmonth", label = "LRLD Start Month", 
+                                                    choices = yearMonths, selected = "March")
+                                      ),
+                                      column(
+                                        width=6,
+                                        selectInput(inputId = "lrldendmonth", label = "LRLD End Month", 
+                                                    choices = yearMonths, selected = "June")
+                                      )
+                                    ),
+                                    fluidRow(
+                                      column(
+                                        width=6,
+                                        selectInput(inputId = "srsdstartmonth", label = "SRSD Start Month", 
+                                                    choices = yearMonths, selected = "October")
+                                      ),
+                                      column(
+                                        width=6,
+                                        selectInput(inputId = "srsdendmonth", label = "SRSD End Month", 
+                                                    choices = yearMonths, selected = "December")
+                                      )
+                                    )),
                                   tags$br(),
                                   tags$br(),
                                   tags$br(),
