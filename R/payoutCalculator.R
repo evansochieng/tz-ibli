@@ -1,4 +1,4 @@
-payoutCalculator <- function(ndviFile, uai, triggerlevel, exitlevel, maxPayout) {
+payoutCalculator <- function(ndviFile, uai, pattern, triggerlevel, exitlevel, maxPayout, sumInsured) {
   # convert all uai name to lower case:
   uaiName <- tolower(uai)
   
@@ -156,8 +156,8 @@ payoutCalculator <- function(ndviFile, uai, triggerlevel, exitlevel, maxPayout) 
     round(digits = 2)
   
   # Create a dataframe for trigger and exit
-  triEx <- data.frame(trigger, exit)
-  colnames(triEx) <- c("Trigger", "Exit")
+  triEx <- data.frame(uai, pattern, trigger, exit, sumInsured, maxPayout)
+  colnames(triEx) <- c("UAI", "Rainfall Pattern", "Trigger", "Exit", "Sum Insured", "Maximum Payout")
   
   # create a dataframe to store the payouts.
   # make a copy of the wsNormalizedNDVI dataframe:

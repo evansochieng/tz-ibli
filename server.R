@@ -84,21 +84,21 @@ server <- function(input, output, session) {
                                                   choices = c("Minimum", "1st Percentile", "5th Percentile"), selected = "5th Percentile")
                                     )
                                   ),
-                                  tags$div(
-                                    id = "unimodaldates", 
-                                    style = "display: none;",
-                                    fluidRow(
-                                      column(
-                                        width=6,
-                                        selectInput(inputId = "statmonth", label = "Start Month", 
-                                                    choices = yearMonths, selected = "November")
-                                      ),
-                                      column(
-                                        width=6,
-                                        selectInput(inputId = "edmonth", label = "End Month", 
-                                                    choices = yearMonths, selected = "May")
-                                      )
-                                    )),
+                                  # tags$div(
+                                  #   id = "unimodaldates", 
+                                  #   style = "display: none;",
+                                  #   fluidRow(
+                                  #     column(
+                                  #       width=6,
+                                  #       selectInput(inputId = "statmonth", label = "Start Month", 
+                                  #                   choices = yearMonths, selected = "November")
+                                  #     ),
+                                  #     column(
+                                  #       width=6,
+                                  #       selectInput(inputId = "edmonth", label = "End Month", 
+                                  #                   choices = yearMonths, selected = "May")
+                                  #     )
+                                  #   )),
                                   tags$div(
                                     id = "unimodaldates", 
                                     style = "display: none;",
@@ -197,11 +197,19 @@ server <- function(input, output, session) {
     as.numeric(input$maxpayout)
   })
   
+  pattern <- reactive({
+    as.character(input$pattern)
+  })
+  
+  sumInsured <- reactive({
+    as.numeric(input$suminsured)
+  })
+  
   # call the function
   payoutFunc <- reactive({
-    payouts <- payoutCalculator(ndviFile = ndviFile, uai = uai(),
+    payouts <- payoutCalculator(ndviFile = ndviFile, uai = uai(), pattern = pattern(),
                                 triggerlevel = triggerlevel(), exitlevel = exitoption(), 
-                                maxPayout = maxPayout())
+                                maxPayout = maxPayout(), sumInsured = sumInsured())
     # return the payouts
     return(payouts)
   })
