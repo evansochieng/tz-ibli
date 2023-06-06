@@ -72,6 +72,19 @@ LRSeasonalAggregate <- LRMonthlyDekadAverages |>
   dplyr::summarise_all("sum") |>
   dplyr::mutate(dplyr::across(everything(), round, 2))
 
+# data normalization:
+LRSeasonalMean <- seasonalAggregate |> 
+  dplyr::select(-c("Year")) |> 
+  dplyr::group_by(SEASON) |> 
+  dplyr::summarise(`X0` = round(mean(`X0`), digits = 2))
+# rename column:
+names(seasonalMean)[2] <- uaiName
+
+seasonalStd <- seasonalAggregate |> 
+  dplyr::select(-c("Year")) |> 
+  dplyr::group_by(SEASON) |> 
+  dplyr::summarise(`X0` = round(sd(`X0`), digits = 2))
+
 
 #### Short Rains Season
 SRMonthlyDekadAverages <- SRData |> 
