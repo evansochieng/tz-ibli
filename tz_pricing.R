@@ -35,8 +35,15 @@ tzData <- tzData |>
 tzData <- tzData |> 
   dplyr::select(-c("Dekad"))
 
+# define other key parameters
+triggerLevel <- 0.25
+exitLevel <- "5th Percentile"
+maxPayout <- 1
+LRSeasonPerc <- 0.58
+SRSeasonPerc <- 0.42
 
-###### Morogoro Pricing ######
+
+###### Tanga Pricing ######
 # define start month
 LRstartMonth <- "March" |> match(month.name)
 LRendMonth <- "June" |> match(month.name)
@@ -73,18 +80,48 @@ LRSeasonalAggregate <- LRMonthlyDekadAverages |>
   dplyr::mutate(dplyr::across(everything(), round, 2))
 
 # data normalization:
-LRSeasonalMean <- seasonalAggregate |> 
-  dplyr::select(-c("Year")) |> 
-  dplyr::group_by(SEASON) |> 
-  dplyr::summarise(`X0` = round(mean(`X0`), digits = 2))
-# rename column:
-names(seasonalMean)[2] <- uaiName
+LRSeasonalMean <- round(mean(as.numeric(LRSeasonalAggregate[1,])), digits = 4)
 
-seasonalStd <- seasonalAggregate |> 
-  dplyr::select(-c("Year")) |> 
-  dplyr::group_by(SEASON) |> 
-  dplyr::summarise(`X0` = round(sd(`X0`), digits = 2))
+LRSeasonalStd <- round(sd(as.numeric(LRSeasonalAggregate[1,])), digits = 4)
 
+# normalize the raw data
+LRNormalizedNDVI <- as.data.frame((LRSeasonalAggregate - LRSeasonalMean) / LRSeasonalStd) |>
+  dplyr::mutate(dplyr::across(everything(), round, 4))
+
+# calculate exit based on the chosen percentile level
+if (exitLevel == 'Minimum'){
+  LRExit <- min(LRNormalizedNDVI)
+} else if (exitLevel == '1st Percentile'){
+  LRExit <- LRNormalizedNDVI |> quantile(probs = 0.01) |>
+    round(digits = 4)
+} else if (exitLevel == '5th Percentile'){
+  LRExit <- LRNormalizedNDVI |> quantile(probs = 0.05) |>
+    round(digits = 4)
+}
+
+# calculate the trigger based on the percentile passed
+LRTrigger <- LRNormalizedNDVI |> quantile(probs = triggerLevel) |> 
+  round(digits = 4)
+
+# create a dataframe for the payouts
+# make a copy of the LRNormalizedNDVI dataframe:
+LRPayouts <- LRNormalizedNDVI
+
+# calculate payouts:
+for (year in 1:ncol(LRNormalizedNDVI)) {
+  # extract value for calculating payout:
+  LRActualValue <- LRNormalizedNDVI[, year]
+  
+  # calculate payout:
+  if (LRActualValue > LRTrigger) {
+    LRPayouts[, year] <- 0
+  }else if (LRActualValue <= LRExit) {
+    LRPayouts[, year] <- maxPayout * LRSeasonPerc #make this reactive
+  }else if (LRActualValue <= LRTrigger & LRActualValue > LRExit) {
+    LRPayouts[, year] <- ((LRTrigger - LRActualValue) / (LRTrigger - LRExit)) * LRSeasonPerc
+  }
+}
+####################################################################
 
 #### Short Rains Season
 SRMonthlyDekadAverages <- SRData |> 
@@ -101,3 +138,75 @@ SRMonthlyDekadAverages <- SRMonthlyDekadAverages |>
 SRSeasonalAggregate <- SRMonthlyDekadAverages |> 
   dplyr::summarise_all("sum") |>
   dplyr::mutate(dplyr::across(everything(), round, 2))
+
+# Data normalization
+SRSeasonalMean <- round(mean(as.numeric(SRSeasonalAggregate[1,])), digits = 4)
+
+SRSeasonalStd <- round(sd(as.numeric(SRSeasonalAggregate[1,])), digits = 4)
+
+# normalize the raw data
+SRNormalizedNDVI <- as.data.frame((SRSeasonalAggregate - SRSeasonalMean) / SRSeasonalStd) |>
+  dplyr::mutate(dplyr::across(everything(), round, 4))
+
+# calculate exit based on the chosen percentile level
+if (exitLevel == 'Minimum'){
+  SRExit <- min(SRNormalizedNDVI)
+} else if (exitLevel == '1st Percentile'){
+  SRExit <- SRNormalizedNDVI |> quantile(probs = 0.01) |>
+    round(digits = 4)
+} else if (exitLevel == '5th Percentile'){
+  SRExit <- SRNormalizedNDVI |> quantile(probs = 0.05) |>
+    round(digits = 4)
+}
+
+# calculate the trigger based on the percentile passed
+SRTrigger <- SRNormalizedNDVI |> quantile(probs = triggerLevel) |> 
+  round(digits = 4)
+
+# create a dataframe for the payouts
+# make a copy of the LRNormalizedNDVI dataframe:
+SRPayouts <- SRNormalizedNDVI
+
+# calculate payouts:
+for (year in 1:ncol(SRNormalizedNDVI)) {
+  # extract value for calculating payout:
+  SRActualValue <- SRNormalizedNDVI[, year]
+  
+  # calculate payout:
+  if (SRActualValue > SRTrigger) {
+    SRPayouts[, year] <- 0
+  }else if (SRActualValue <= SRExit) {
+    SRPayouts[, year] <- maxPayout * SRSeasonPerc #make this reactive
+  }else if (SRActualValue <= SRTrigger & SRActualValue > SRExit) {
+    SRPayouts[, year] <- ((SRTrigger - SRActualValue) / (SRTrigger - SRExit)) * SRSeasonPerc
+  }
+}
+################################################################
+
+##### Visualize the payouts
+# merge the two dataframes
+payoutsCombo <- LRPayouts
+payoutsCombo[2, ] <- SRPayouts[1, ]
+payoutsCombo <- payoutsCombo |>
+  t() |>
+  as.data.frame() |>
+  tibble::rownames_to_column("Year") |>
+  setNames(c("Year", "LR Season Payout", "SR Season Payout"))
+  
+# draw a stack bar graph for the long rains and short rains seasons payouts using plot_ly
+fig <- plotly::plot_ly(payoutsCombo, x = ~Year,
+                       y = ~`LR Season Payout`, type = 'bar', name = 'LR Season') |>
+  plotly::add_trace(y = ~`SR Season Payout`, name = 'LR Season') |>
+  plotly::layout(yaxis = list(title = 'Annual Payouts'),
+         barmode = 'stack',title="Historical Payouts")
+fig
+
+### Premium Calculation
+# Calculate the total payout
+totalPayouts <- LRPayouts + SRPayouts
+
+# Calculate premium rate
+premiumRate <- round(mean(as.numeric(totalPayouts[1,])), digits = 2)
+
+
+##### Morogoro Pricing ######
