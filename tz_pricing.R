@@ -9,10 +9,12 @@ head(tzData)
 colSums(is.na(tzData))
 # 2002 and 2022 have missing values
 
-# Drop the first column because it has several missing values
-tzData <- tzData |>
-  dplyr::select(-c("2002"))
+# # Drop the first column because it has several missing values
+# tzData <- tzData |>
+#   dplyr::select(-c("2002"))
 
+# Fill the missing values in 2002 with zeros
+tzData$`2002`[is.na(tzData$`2002`)] <- 0
 # Fill the two missing values in 2022 column with mean value
 tzData$`2022`[is.na(tzData$`2022`)] <- mean(tzData$`2022`, na.rm=TRUE)
 
@@ -185,6 +187,7 @@ for (year in 1:ncol(SRNormalizedNDVI)) {
 
 ##### Visualize the payouts
 # merge the two dataframes
+payoutsCombo <- rbind(LRPayouts, SRPayouts)
 payoutsCombo <- LRPayouts
 payoutsCombo[2, ] <- SRPayouts[1, ]
 payoutsCombo <- payoutsCombo |>
@@ -196,7 +199,7 @@ payoutsCombo <- payoutsCombo |>
 # draw a stack bar graph for the long rains and short rains seasons payouts using plot_ly
 fig <- plotly::plot_ly(payoutsCombo, x = ~Year,
                        y = ~`LR Season Payout`, type = 'bar', name = 'LR Season') |>
-  plotly::add_trace(y = ~`SR Season Payout`, name = 'LR Season') |>
+  plotly::add_trace(y = ~`SR Season Payout`, name = 'SR Season') |>
   plotly::layout(yaxis = list(title = 'Annual Payouts'),
          barmode = 'stack',title="Historical Payouts")
 fig
@@ -210,3 +213,39 @@ premiumRate <- round(mean(as.numeric(totalPayouts[1,])), digits = 2)
 
 
 ##### Morogoro Pricing ######
+
+# define the rainy season
+RSstartMonth <- "November" |> match(month.name)
+RSendMonth <- "May" |> match(month.name)
+
+RSendYearMonth <- "December" |> match(month.name)
+RSstartYearMonth <- "January" |> match(month.name)
+
+# define an array to store the rainy season NDVI values
+RSNdvi <- data.frame(matrix(ncol = 0, nrow = 21))
+RSMonths <- c()
+
+for (year in 1:(ncol(tzData)-2)) {
+  # get the current year and the next year
+  currentYear <- colnames(tzData)[year]
+  nextYear <- colnames(tzData)[year + 1]
+  
+  # extract data for the current year
+  curYrNDVI <- tzData[c(currentYear, "Month")] |>
+    dplyr::filter(dplyr::between(Month, RSstartMonth, RSendYearMonth))
+  # extract data for the next year
+  nxtYrNDVI <- tzData[c(nextYear, "Month")] |>
+    dplyr::filter(dplyr::between(Month, RSstartYearMonth, RSendMonth)) |>
+    `colnames<-`(c(currentYear, "Month"))
+  
+  # merge the two subsets to have ndvi for whole season at once
+  curYearSeasonNDVI <- rbind(curYrNDVI, nxtYrNDVI)
+  
+  # create a dataframe to have all the historical data for the rainy season
+  RSNdvi[, currentYear] <- curYearSeasonNDVI[[currentYear]]
+  
+  RSMonths <- curYearSeasonNDVI$Month
+}
+
+# add the months column to the dataframe
+RSNdvi$Month <- RSMonths
