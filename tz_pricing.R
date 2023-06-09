@@ -9,10 +9,6 @@ head(tzData)
 colSums(is.na(tzData))
 # 2002 and 2022 have missing values
 
-# # Drop the first column because it has several missing values
-# tzData <- tzData |>
-#   dplyr::select(-c("2002"))
-
 # Fill the missing values in 2002 with zeros
 tzData$`2002`[is.na(tzData$`2002`)] <- 0
 # Fill the two missing values in 2022 column with mean value
@@ -61,7 +57,7 @@ SRData <- tzData |>
   dplyr::filter(dplyr::between(Month, SRstartMonth, SRendMonth))
 
 # DATA WRANGLING
-# Average dekadal NDVI to find monthly estimates (rounded off to 2 decimal 
+# Average dekadal NDVI to find monthly estimates (rounded off to 4 decimal 
 # places)
 # group data by month => gives monthly averages:
 
@@ -69,7 +65,7 @@ SRData <- tzData |>
 LRMonthlyDekadAverages <- LRData |> 
   dplyr::group_by(Month) |> 
   dplyr::summarise_all("mean") |>
-  dplyr::mutate(dplyr::across(everything(), round, 2)) |>
+  dplyr::mutate(dplyr::across(everything(), round, 4)) |>
   dplyr::ungroup()
 
 # drop the month column
@@ -79,7 +75,7 @@ LRMonthlyDekadAverages <- LRMonthlyDekadAverages |>
 # Aggregate LR season rainfall
 LRSeasonalAggregate <- LRMonthlyDekadAverages |> 
   dplyr::summarise_all("sum") |>
-  dplyr::mutate(dplyr::across(everything(), round, 2))
+  dplyr::mutate(dplyr::across(everything(), round, 4))
 
 # data normalization:
 LRSeasonalMean <- round(mean(as.numeric(LRSeasonalAggregate[1,])), digits = 4)
@@ -209,7 +205,7 @@ fig
 totalPayouts <- LRPayouts + SRPayouts
 
 # Calculate premium rate
-premiumRate <- round(mean(as.numeric(totalPayouts[1,])), digits = 2)
+bimodalPremiumRate <- round(mean(as.numeric(totalPayouts[1,])), digits = 2)
 
 
 ##### Morogoro Pricing ######
@@ -249,3 +245,84 @@ for (year in 1:(ncol(tzData)-2)) {
 
 # add the months column to the dataframe
 RSNdvi$Month <- RSMonths
+
+# DATA WRANGLING
+# Average dekadal NDVI to find monthly estimates (rounded off to 4 decimal 
+# places)
+# group data by month => gives monthly averages:
+
+RSMonthlyDekadAverages <- RSNdvi |> 
+  dplyr::group_by(Month) |> 
+  dplyr::summarise_all("mean") |>
+  dplyr::mutate(dplyr::across(everything(), round, 4)) |>
+  dplyr::ungroup()
+
+# drop the month column
+RSMonthlyDekadAverages <- RSMonthlyDekadAverages |>
+  dplyr::select(-c(Month))
+
+# Aggregate RS season rainfall
+RSSeasonalAggregate <- RSMonthlyDekadAverages |> 
+  dplyr::summarise_all("sum") |>
+  dplyr::mutate(dplyr::across(everything(), round, 4))
+
+# data normalization:
+RSSeasonalMean <- round(mean(as.numeric(RSSeasonalAggregate[1,])), digits = 4)
+
+RSSeasonalStd <- round(sd(as.numeric(RSSeasonalAggregate[1,])), digits = 4)
+
+# normalize the raw data
+RSNormalizedNDVI <- as.data.frame((RSSeasonalAggregate - RSSeasonalMean) / RSSeasonalStd) |>
+  dplyr::mutate(dplyr::across(everything(), round, 4))
+
+# calculate exit based on the chosen percentile level
+if (exitLevel == 'Minimum'){
+  RSExit <- min(RSNormalizedNDVI)
+} else if (exitLevel == '1st Percentile'){
+  RSExit <- RSNormalizedNDVI |> quantile(probs = 0.01) |>
+    round(digits = 4)
+} else if (exitLevel == '5th Percentile'){
+  RSExit <- RSNormalizedNDVI |> quantile(probs = 0.05) |>
+    round(digits = 4)
+}
+
+# calculate the trigger based on the percentile passed
+RSTrigger <- RSNormalizedNDVI |> quantile(probs = triggerLevel) |> 
+  round(digits = 4)
+
+# create a dataframe for the payouts
+# make a copy of the RSNormalizedNDVI dataframe:
+RSPayouts <- RSNormalizedNDVI
+
+# calculate payouts:
+for (year in 1:ncol(RSNormalizedNDVI)) {
+  # extract value for calculating payout:
+  RSActualValue <- RSNormalizedNDVI[, year]
+  
+  # calculate payout:
+  if (RSActualValue > RSTrigger) {
+    RSPayouts[, year] <- 0
+  }else if (RSActualValue <= RSExit) {
+    RSPayouts[, year] <- maxPayout #make this reactive
+  }else if (RSActualValue <= RSTrigger & RSActualValue > RSExit) {
+    RSPayouts[, year] <- ((RSTrigger - RSActualValue) / (RSTrigger - RSExit))
+  }
+}
+
+### Visualize the payouts
+RSPayouts <- RSPayouts |>
+  t() |>
+  as.data.frame() |>
+  tibble::rownames_to_column("Year") |>
+  setNames(c("Year", "RS Payouts"))
+
+
+# draw a bar graph for the rainy season payouts using plot_ly
+RSFig <- plotly::plot_ly(RSPayouts, x = ~Year,
+                       y = ~`RS Payouts`, type = 'bar', name = 'Rainy Season') |>
+  plotly::layout(yaxis = list(title = 'Annual Payouts'), 
+                 title="Historical Payouts")
+RSFig
+
+# Calculate premium rate
+unimodalPremiumRate <- round(mean(as.numeric(RSPayouts[, "RS Payouts"])), digits = 2)

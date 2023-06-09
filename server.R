@@ -67,9 +67,6 @@ server <- function(input, output, session) {
                                       selectInput(inputId = "uai", label = "UAI", 
                                                   choices = c("Ajaj", "Murhal", "Alaf", "Eena", "Daoul"), 
                                                   selected = "Ajaj"),
-                                      selectInput(inputId = "suminsured", label = "Policy Sum Insured", 
-                                                  choices = seq(50, 300, 10), 
-                                                  selected = 100),
                                       selectInput(inputId = "triggerlevel", label = "Trigger Level (Percentile Value)", 
                                                   choices = seq(0.1, 1, 0.05), selected = 0.2),
                                     ),
@@ -78,8 +75,6 @@ server <- function(input, output, session) {
                                       selectInput(inputId = "pattern", label = "Rainfall Pattern", 
                                                   choices = rainPattern,
                                                   selected = "Unimodal"),
-                                      selectInput(inputId = "maxpayout", label = "Policy Maximum Payout", 
-                                                  choices = seq(0.5, 1, 0.1), selected = 1),
                                       selectInput(inputId = "exitoption", label = "Exit Level", 
                                                   choices = c("Minimum", "1st Percentile", "5th Percentile"), selected = "5th Percentile")
                                     )
@@ -105,13 +100,15 @@ server <- function(input, output, session) {
                                     fluidRow(
                                       column(
                                         width=6,
-                                        selectInput(inputId = "startmonth", label = "Start Month", 
-                                                    choices = yearMonths, selected = "November")
+                                        # create a date input for the start of the season
+                                        dateInput(inputId = "startdate", label = "Start of Season", 
+                                                  value = "2023-11-01", format = "dd/mm/yyyy")
                                       ),
                                       column(
                                         width=6,
-                                        selectInput(inputId = "endmonth", label = "End Month", 
-                                                    choices = yearMonths, selected = "May")
+                                        # create a date input for the end of the season
+                                        dateInput(inputId = "enddate", label = "End of Season", 
+                                                  value = "2024-05-31", format = "dd/mm/yyyy")
                                       )
                                     )),
                                   tags$div(
@@ -120,27 +117,44 @@ server <- function(input, output, session) {
                                     fluidRow(
                                       column(
                                         width=6,
-                                        selectInput(inputId = "lrldstartmonth", label = "LRLD Start Month", 
-                                                    choices = yearMonths, selected = "March")
+                                        # create a date input for the start of the long rain long dry season
+                                        dateInput(inputId = "lrldstartdate", label = "LRLD Start Date", 
+                                                  value = "2023-03-01", format = "dd/mm/yyyy")
                                       ),
                                       column(
                                         width=6,
-                                        selectInput(inputId = "lrldendmonth", label = "LRLD End Month", 
-                                                    choices = yearMonths, selected = "June")
+                                        # create a date input for the end of the long rain long dry season
+                                        dateInput(inputId = "lrldenddate", label = "LRLD End Date", 
+                                                  value = "2023-06-30", format = "dd/mm/yyyy")
                                       )
                                     ),
                                     fluidRow(
                                       column(
                                         width=6,
-                                        selectInput(inputId = "srsdstartmonth", label = "SRSD Start Month", 
-                                                    choices = yearMonths, selected = "October")
+                                        # create a date input for the start of the short rain short dry season
+                                        dateInput(inputId = "srsdstartdate", label = "SRSD Start Date", 
+                                                  value = "2023-10-01", format = "dd/mm/yyyy")
                                       ),
                                       column(
                                         width=6,
-                                        selectInput(inputId = "srsdendmonth", label = "SRSD End Month", 
-                                                    choices = yearMonths, selected = "December")
+                                        # create a date input for the end of the short rain short dry season
+                                        dateInput(inputId = "srsdenddate", label = "SRSD End Date", 
+                                                  value = "2023-12-31", format = "dd/mm/yyyy")
                                       )
                                     )),
+                                  fluidRow(
+                                    column(
+                                      width = 6,
+                                      selectInput(inputId = "suminsured", label = "Policy Sum Insured", 
+                                                  choices = seq(50, 300, 10), 
+                                                  selected = 100)
+                                    ),
+                                    column(
+                                      width = 6,
+                                      selectInput(inputId = "maxpayout", label = "Policy Maximum Payout", 
+                                                  choices = seq(0.5, 1, 0.1), selected = 1)
+                                    )
+                                  ),
                                   tags$br(),
                                   tags$br(),
                                   tags$br(),
