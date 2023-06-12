@@ -64,6 +64,9 @@ server <- function(input, output, session) {
                                   fluidRow(
                                     column(
                                       width = 6,
+                                      # selectInput(inputId = "uai", label = "UAI", 
+                                      #             choices = c("Morogoro", "Tanga"), 
+                                      #             selected = "Morogoro"),
                                       selectInput(inputId = "uai", label = "UAI", 
                                                   choices = c("Ajaj", "Murhal", "Alaf", "Eena", "Daoul"), 
                                                   selected = "Ajaj"),
