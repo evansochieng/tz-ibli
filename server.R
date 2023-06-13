@@ -64,14 +64,14 @@ server <- function(input, output, session) {
                                   fluidRow(
                                     column(
                                       width = 6,
+                                      selectInput(inputId = "uai", label = "UAI",
+                                                  choices = c("Morogoro", "Tanga"),
+                                                  selected = "Morogoro"),
                                       # selectInput(inputId = "uai", label = "UAI", 
-                                      #             choices = c("Morogoro", "Tanga"), 
-                                      #             selected = "Morogoro"),
-                                      selectInput(inputId = "uai", label = "UAI", 
-                                                  choices = c("Ajaj", "Murhal", "Alaf", "Eena", "Daoul"), 
-                                                  selected = "Ajaj"),
+                                      #             choices = c("Ajaj", "Murhal", "Alaf", "Eena", "Daoul"), 
+                                      #             selected = "Ajaj"),
                                       selectInput(inputId = "triggerlevel", label = "Trigger Level (Percentile Value)", 
-                                                  choices = seq(0.1, 1, 0.05), selected = 0.2),
+                                                  choices = seq(0.1, 1, 0.05), selected = 0.25),
                                     ),
                                     column(
                                       width = 6,
@@ -104,14 +104,14 @@ server <- function(input, output, session) {
                                       column(
                                         width=6,
                                         # create a date input for the start of the season
-                                        dateInput(inputId = "startdate", label = "Start of Season", 
-                                                  value = "2023-11-01", format = "dd/mm/yyyy")
+                                        dateInput(inputId = "rsstartdate", label = "Start of Season", 
+                                                  value = "2023-11-01", format = "dd-m-yyyy")
                                       ),
                                       column(
                                         width=6,
                                         # create a date input for the end of the season
-                                        dateInput(inputId = "enddate", label = "End of Season", 
-                                                  value = "2024-05-31", format = "dd/mm/yyyy")
+                                        dateInput(inputId = "rsenddate", label = "End of Season", 
+                                                  value = "2024-05-31", format = "dd-m-yyyy")
                                       )
                                     )),
                                   tags$div(
@@ -121,28 +121,28 @@ server <- function(input, output, session) {
                                       column(
                                         width=6,
                                         # create a date input for the start of the long rain long dry season
-                                        dateInput(inputId = "lrldstartdate", label = "LRLD Start Date", 
-                                                  value = "2023-03-01", format = "dd/mm/yyyy")
+                                        dateInput(inputId = "lrstartdate", label = "LRLD Start Date", 
+                                                  value = "2023-03-01", format = "dd-m-yyyy")
                                       ),
                                       column(
                                         width=6,
                                         # create a date input for the end of the long rain long dry season
-                                        dateInput(inputId = "lrldenddate", label = "LRLD End Date", 
-                                                  value = "2023-06-30", format = "dd/mm/yyyy")
+                                        dateInput(inputId = "lrenddate", label = "LRLD End Date", 
+                                                  value = "2023-06-30", format = "dd-m-yyyy")
                                       )
                                     ),
                                     fluidRow(
                                       column(
                                         width=6,
                                         # create a date input for the start of the short rain short dry season
-                                        dateInput(inputId = "srsdstartdate", label = "SRSD Start Date", 
-                                                  value = "2023-10-01", format = "dd/mm/yyyy")
+                                        dateInput(inputId = "srstartdate", label = "SRSD Start Date", 
+                                                  value = "2023-10-01", format = "dd-m-yyyy")
                                       ),
                                       column(
                                         width=6,
                                         # create a date input for the end of the short rain short dry season
-                                        dateInput(inputId = "srsdenddate", label = "SRSD End Date", 
-                                                  value = "2023-12-31", format = "dd/mm/yyyy")
+                                        dateInput(inputId = "srenddate", label = "SRSD End Date", 
+                                                  value = "2023-12-31", format = "dd-m-yyyy")
                                       )
                                     )),
                                   fluidRow(
@@ -197,6 +197,7 @@ server <- function(input, output, session) {
       ))
   })
   
+  ##################################
   # grab the inputs
   uai <- reactive({
     as.character(input$uai)
@@ -222,30 +223,96 @@ server <- function(input, output, session) {
     as.numeric(input$suminsured)
   })
   
-  # call the function
+  RSstartDate <- reactive({
+    input$rsstartdate
+  })
+  
+  RSendDate <- reactive({
+    input$rsenddate
+  })
+  
+  LRstartDate <- reactive({
+    input$lrstartdate
+  })
+  
+  LRendDate <- reactive({
+    input$lrenddate
+  })
+  
+  SRstartDate <- reactive({
+    input$srstartdate
+  })
+  
+  SRendDate <- reactive({
+    input$srenddate
+  })
+  
+  #################################
+  
+  # # call the function to calculate payouts + other outputs
+  # payoutFunc <- reactive({
+  #   payouts <- payoutCalculator(ndviFile = ndviFile, uai = uai(), pattern = pattern(),
+  #                               triggerlevel = triggerlevel(), exitlevel = exitoption(), 
+  #                               maxPayout = maxPayout(), sumInsured = sumInsured())
+  #   # return the payouts
+  #   return(payouts)
+  # })
+  
+  # call the function to calculate payouts + other outputs
   payoutFunc <- reactive({
-    payouts <- payoutCalculator(ndviFile = ndviFile, uai = uai(), pattern = pattern(),
-                                triggerlevel = triggerlevel(), exitlevel = exitoption(), 
-                                maxPayout = maxPayout(), sumInsured = sumInsured())
+    payouts <- claimCalculator(stackedTZData = stackedTZData, uai = uai(), pattern = pattern(),
+                                triggerLevel = triggerlevel(), exitLevel = exitoption(), 
+                                maxPayout = maxPayout(), sumInsured = sumInsured(), 
+                               RSstartDate = RSstartDate(), RSendDate = RSendDate(), LRstartDate = LRstartDate(), 
+                               LRendDate = LRendDate(), SRstartDate = SRstartDate(), SRendDate = SRendDate())
     # return the payouts
     return(payouts)
   })
   
   # bar graph of historical payouts
-  output$payoutBarPlot <- plotly::renderPlotly({
-    
-    # plot bar graph of annual payouts
-    histPayoutsBarGraph <- payoutFunc()$payouts |>
-      plotly::plot_ly(x = ~Year, y = ~Payouts) |>
-      plotly::add_bars() |>
-      plotly::layout(
-        title = "Historical Payouts",
-        xaxis = list(title = "Years"),
-        yaxis = list(title = "Payouts (%)")
-      )
-    histPayoutsBarGraph
-    
+  histPayoutPlot <- reactive({
+    if (uai() == "Tanga") {
+      # draw a stack bar graph for the long rains and short rains seasons payouts using plot_ly
+      histPayoutsBarGraph <- payoutFunc()$payoutsPlot |>
+        plotly::plot_ly(x = ~Year,
+                        y = ~`LR Season Payout`, type = 'bar', name = 'LR Season') |>
+        plotly::add_trace(y = ~`SR Season Payout`, name = 'SR Season') |>
+        plotly::layout(yaxis = list(title = 'Annual Payouts'),
+                       barmode = 'stack',title="Historical Payouts")
+      
+      # return plot
+      return(histPayoutsBarGraph)
+    } else if (uai() == "Morogoro") {
+      # draw a bar graph for the rainy season payouts using plot_ly
+      histPayoutsBarGraph <- payoutFunc()$payoutsPlot |>
+        plotly::plot_ly(x = ~Year,
+                        y = ~`RS Payouts`, type = 'bar', name = 'Rainy Season') |>
+        plotly::layout(yaxis = list(title = 'Annual Payouts'), 
+                       title="Historical Payouts")
+      
+      # return plot
+      return(histPayoutsBarGraph)
+    }
   })
+  
+  output$payoutBarPlot <- plotly::renderPlotly({
+    histPayoutPlot()
+  })
+  
+  # output$payoutBarPlot <- plotly::renderPlotly({
+  #   
+  #   # plot bar graph of annual payouts
+  #   histPayoutsBarGraph <- payoutFunc()$payoutsPlot |>
+  #     plotly::plot_ly(x = ~Year, y = ~Payouts) |>
+  #     plotly::add_bars() |>
+  #     plotly::layout(
+  #       title = "Historical Payouts",
+  #       xaxis = list(title = "Years"),
+  #       yaxis = list(title = "Payouts (%)")
+  #     )
+  #   histPayoutsBarGraph
+  #   
+  # })
   
   # premium rate
   output$premium <- shinydashboard::renderValueBox({
@@ -276,6 +343,6 @@ server <- function(input, output, session) {
   
   
   # display table of params
-  output$params <- renderTable(payoutFunc()$triEx, bordered = TRUE)
+  output$params <- renderTable(payoutFunc()$sumParameters, bordered = TRUE)
   
 }

@@ -42,6 +42,10 @@ stackedTZData <- stackedTZData |>
 # create a function to map dates to respective dekad
 # dekads are from 1:36
 dekadMap <- function(date) {
+  
+  # print the date
+  print(date)
+  
   # check the month
   if (lubridate::month(lubridate::ymd(date)) == 1) {
     # check the range where the day falls and get dekad
@@ -428,3 +432,6 @@ totalPayouts <- LRPayouts + SRPayouts
 
 # Calculate premium rate
 bimodalPremiumRate <- round(mean(as.numeric(totalPayouts[1,])), digits = 2)
+
+
+##################################################
