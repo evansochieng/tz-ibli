@@ -59,9 +59,9 @@ stackedTZData <- stackedTZData |>
 # create a function to map dates to respective dekad
 # dekads are from 1:36
 dekadMap <- function(date) {
+  
+  # convert the date to the right format
   date <- as.Date(date, format = "%d-%m-%Y")
-  # print the date
-  print(date)
   
   # check the month
   if (lubridate::month(lubridate::ymd(date)) == 1) {

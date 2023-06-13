@@ -43,9 +43,6 @@ stackedTZData <- stackedTZData |>
 # dekads are from 1:36
 dekadMap <- function(date) {
   
-  # print the date
-  print(date)
-  
   # check the month
   if (lubridate::month(lubridate::ymd(date)) == 1) {
     # check the range where the day falls and get dekad

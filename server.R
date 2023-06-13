@@ -62,9 +62,6 @@ server <- function(input, output, session) {
                                       selectInput(inputId = "uai", label = "UAI",
                                                   choices = c("Morogoro", "Tanga"),
                                                   selected = "Morogoro"),
-                                      # selectInput(inputId = "uai", label = "UAI", 
-                                      #             choices = c("Ajaj", "Murhal", "Alaf", "Eena", "Daoul"), 
-                                      #             selected = "Ajaj"),
                                       selectInput(inputId = "triggerlevel", label = "Trigger Level (Percentile Value)", 
                                                   choices = seq(0.1, 1, 0.05), selected = 0.25),
                                     ),
@@ -77,21 +74,6 @@ server <- function(input, output, session) {
                                                   choices = c("Minimum", "1st Percentile", "5th Percentile"), selected = "5th Percentile")
                                     )
                                   ),
-                                  # tags$div(
-                                  #   id = "unimodaldates", 
-                                  #   style = "display: none;",
-                                  #   fluidRow(
-                                  #     column(
-                                  #       width=6,
-                                  #       selectInput(inputId = "statmonth", label = "Start Month", 
-                                  #                   choices = yearMonths, selected = "November")
-                                  #     ),
-                                  #     column(
-                                  #       width=6,
-                                  #       selectInput(inputId = "edmonth", label = "End Month", 
-                                  #                   choices = yearMonths, selected = "May")
-                                  #     )
-                                  #   )),
                                   tags$div(
                                     id = "unimodaldates", 
                                     style = "display: none;",
@@ -167,8 +149,6 @@ server <- function(input, output, session) {
                                     # strong(h4("Summary of Selected Parameters")),
                                     tableOutput("params"),
                                     tags$br()
-                                    # # Download button for summary of parameters
-                                    # shiny::downloadButton("downloadparams", "Download Parameters")
                                   ),
                                   tags$br(),
                                   # Download termsheet
@@ -177,14 +157,11 @@ server <- function(input, output, session) {
                                 column(
                                   width = 6,
                                   h3("Historical Payout Analysis", style="text-align:center;"),
-                                  #dataTableOutput('payouts'),
                                   plotly::plotlyOutput("payoutBarPlot"),
                                   tags$br(),
                                   # Download button for actual payouts
                                   shiny::downloadButton("downloadpayouts", "Download Actual Payouts"),
                                   tags$br(),
-                                  # strong(h4("Actual Historical Payouts Values")),
-                                  # DT::dataTableOutput("payouts"),
                                   tags$br(),
                                   shinydashboard::valueBoxOutput("premium", width = 20)
                                 )
@@ -244,15 +221,6 @@ server <- function(input, output, session) {
   
   #################################
   
-  # # call the function to calculate payouts + other outputs
-  # payoutFunc <- reactive({
-  #   payouts <- payoutCalculator(ndviFile = ndviFile, uai = uai(), pattern = pattern(),
-  #                               triggerlevel = triggerlevel(), exitlevel = exitoption(), 
-  #                               maxPayout = maxPayout(), sumInsured = sumInsured())
-  #   # return the payouts
-  #   return(payouts)
-  # })
-  
   # call the function to calculate payouts + other outputs
   payoutFunc <- reactive({
     payouts <- claimCalculator(stackedTZData = stackedTZData, uai = uai(), pattern = pattern(),
@@ -294,21 +262,6 @@ server <- function(input, output, session) {
     histPayoutPlot()
   })
   
-  # output$payoutBarPlot <- plotly::renderPlotly({
-  #   
-  #   # plot bar graph of annual payouts
-  #   histPayoutsBarGraph <- payoutFunc()$payoutsPlot |>
-  #     plotly::plot_ly(x = ~Year, y = ~Payouts) |>
-  #     plotly::add_bars() |>
-  #     plotly::layout(
-  #       title = "Historical Payouts",
-  #       xaxis = list(title = "Years"),
-  #       yaxis = list(title = "Payouts (%)")
-  #     )
-  #   histPayoutsBarGraph
-  #   
-  # })
-  
   # premium rate
   output$premium <- shinydashboard::renderValueBox({
     shinydashboard::valueBox(
@@ -318,14 +271,7 @@ server <- function(input, output, session) {
       width = 2
     )
   })
-  
-  ##########################################################################
-  # # display payouts
-  # output$payouts <-  DT::renderDataTable({
-  #   DT::datatable(payoutFunc()$claims, options = list(scroller = TRUE,
-  #                                                     scrollX = 500))
-  # })
-  #################################################################
+
   # Downloadable csv of selected dataset ----
   output$downloadpayouts <- downloadHandler(
     filename = function() {
