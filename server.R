@@ -1,31 +1,26 @@
 server <- function(input, output, session) {
   
-  # Define variables for choices of rainfall pattern and season
+  # Define variable for choices of rainfall pattern
   rainPattern <- c("Unimodal", "Bimodal")
-  # rainSeason <- c("Long Rains", "Short Rains", "Single Rains")
-  # biRainSeason <- c("Long Rains", "Short Rains")
-  # singleRainSeason <- c("Single Rains")
-  yearMonths <- c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
   
-  
-  # ###########Observe rainfall pattern to determine season#########################################
-  #   
-  # # Observe choice of rainfall pattern to inform choice of season
-  # observe({
-  #   if(req(input$pattern) == "Bimodal") {
-  #     updateSelectInput(session, "season", 
-  #                       choices = biRainSeason, 
-  #                       selected = isolate("Long Rains") )
-  #   }
-  # })
-  # 
-  # observe({
-  #   if(req(input$pattern) == "Unimodal")
-  #     updateSelectInput(session, "season",
-  #                       choices = singleRainSeason,
-  #                       selected = isolate("Single Rains") )
-  # })
-  # ######################################################################
+  ###########Observe uai and autopopulate rainfall pattern#########################################
+
+  # Observe choice of uai to inform choice of rainfall pattern
+  observe({
+    if(req(input$uai) == "Tanga") {
+      updateSelectInput(session, "pattern",
+                        #choices = rainPattern,
+                        selected = isolate("Bimodal") )
+    }
+  })
+
+  observe({
+    if(req(input$uai) == "Morogoro")
+      updateSelectInput(session, "pattern",
+                        #choices = rainPattern,
+                        selected = isolate("Unimodal") )
+  })
+  ######################################################################
   
   ###################################
   observeEvent(input$pattern, {
