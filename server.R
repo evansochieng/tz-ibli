@@ -266,7 +266,7 @@ server <- function(input, output, session) {
   output$premium <- shinydashboard::renderValueBox({
     shinydashboard::valueBox(
       "Premium Rate",
-      paste(payoutFunc()$premiumRate, '%', sep = ' '),
+      paste(payoutFunc()$premiumRate * 100, '%', sep = ' '),
       icon = icon("hand-holding dollar", verify_fa = FALSE),
       width = 2
     )

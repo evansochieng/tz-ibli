@@ -189,8 +189,8 @@ claimCalculator <- function(
     
     ### Outputs ###
     # Create a dataframe for summary of the parameters
-    sumParameters <- data.frame(uai, pattern, LRTrigger, LRExit, SRTrigger, SRExit, sumInsured, maxPayout)
-    colnames(sumParameters) <- c("UAI", "Rainfall Pattern", "LR Trigger", "LR Exit", "SR Trigger", "SR Exit", "Sum Insured", "Maximum Payout")
+    sumParameters <- data.frame(uai, pattern, sumInsured, maxPayout)
+    colnames(sumParameters) <- c("UAI", "Rainfall Pattern", "Sum Insured", "Maximum Payout")
     
     # draw a stack bar graph for the long rains and short rains seasons payouts using plot_ly
     biFig <- plotly::plot_ly(payoutsCombo, x = ~Year,
@@ -316,8 +316,8 @@ claimCalculator <- function(
     ### Outputs ###
     
     # Create a dataframe for summary of the parameters
-    sumParameters <- data.frame(uai, pattern, RSTrigger, RSExit, sumInsured, maxPayout)
-    colnames(sumParameters) <- c("UAI", "Rainfall Pattern", "Trigger", "Exit", "Sum Insured", "Maximum Payout")
+    sumParameters <- data.frame(uai, pattern, sumInsured, maxPayout)
+    colnames(sumParameters) <- c("UAI", "Rainfall Pattern", "Sum Insured", "Maximum Payout")
     
     
     # draw a bar graph for the rainy season payouts using plot_ly
