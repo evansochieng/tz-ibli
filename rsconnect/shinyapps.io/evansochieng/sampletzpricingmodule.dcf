@@ -5,7 +5,7 @@ account: evansochieng
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 9120894
-bundleId: 7225133
+bundleId: 7349107
 url: https://evansochieng.shinyapps.io/sampletzpricingmodule/
-when: 1684251182.71485
-lastSyncTime: 1684251182.71486
+when: 1686829294.24309
+lastSyncTime: 1686829294.2431

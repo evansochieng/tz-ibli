@@ -1,0 +1,93 @@
+---
+title: "IBLI Report"
+output: 
+  pdf_document
+date: "`r Sys.Date()`"
+params:
+  uai: NA
+  trigger: NA
+  exit: NA
+  maxPayout: NA
+  sumInsured: NA
+  pattern: NA
+  premium: NA
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(tinytex.verbose = TRUE)
+```
+
+## INDEX-BASED LIVESTOCK INSURANCE TERMSHEET FOR `r stringr::str_to_upper(params$uai)`
+
+<table style="border: 1px solid black;">
+<tbody>
+  <tr>
+   <td style="text-align:left; font-weight: bold;"> Type of Product </td>
+   <td style="text-align:right;"> Index-Based Livestock Insurance for Pastoralists </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; font-weight: bold;"> The Risk </td>
+   <td style="text-align:right;"> IBLI is a product that is designed to protect pastoralists and their livestock against the effects of prolonged forage scarcity. It triggers a payment to the pastoralists when the forage level goes to levels considered severe, compared to historical conditions over time. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; font-weight: bold;"> The Index </td>
+   <td style="text-align:right;"> The index in IBLI is the deviation of cumulative forage availability in the insured season. It measures forage conditions over a defined time, and it is calculated using a measure of pasture availability that is recorded by satellites, called the Normalized Difference Vegetation Index (NDVI). The index compares the observed NDVI over a particular season, with the observed NDVI over a given historical period (for example, in this case, 20 years). </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; font-weight: bold;"> Trigger </td>
+   <td style="text-align:right;"> The trigger level, `r params$trigger`, percentile is the index threshold below which payouts must be made. Supposing the forage conditions are ranked from 1 – 100 with one being the worst and 100 being the best. The trigger level is then set such that if the forage conditions for the current contract season are ranked `r params$trigger` and below, the contract will pay out. Therefore, the trigger level is set at the `r params$trigger` percentile.
+
+This generally means that the contract will compensate if the forage condition falls below the worst `r params$trigger` percentile of seasonal pasture levels in the contract area.
+ </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; font-weight: bold;"> Exit </td>
+   <td style="text-align:right;"> The exit level is the index threshold below which the maximum payout (total sum insured) is made. Supposing the forage conditions are ranked from the highest to the lowest. The exit level is then set such that if the forage conditions for the current season are ranked `r params$exit` and below, the contract will pay out the maximum. The exit is therefore the `r params$exit` percentile.
+
+This means that the contract will make the full payment of the total sum insured if the forage condition falls below the worst `r params$exit` percentile seasonal pasture levels in the area covered.
+ </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; font-weight: bold;"> Coverage Period </td>
+   <td style="text-align:right;"> This is an annual policy that covers the pastoralists from the effects of drought during the drought period.
+
+`r params$uai` has a `r params$pattern` rainfall pattern.
+ </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; font-weight: bold;"> Sum Insured (SI) </td>
+   <td style="text-align:right;"> The sum insured is the average amount of money the pastoralist will require to buy fodder for 1 TLU during the dry months within a 1-year period.
+
+The SI for the contract is `r params$sumInsured` TZS.
+ </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; font-weight: bold;"> Premium Rate </td>
+   <td style="text-align:right;"> The premium is the amount paid annually by a pastoralist for every TLU (basically an animal) that they wish to insure. It is the amount the insured pastoralist pays the insurance company for every insured TLU to obtain coverage against the effects of forage scarcity due to drought.
+
+The premium rate is the cost of insuring an animal per unit of protection or risk covered.
+
+Annual Premium = Premium Rate * Sum Insured.
+
+For this contract, the premium rate is `r params$premium` %.
+
+Therefore, the Annual Premium is `r as.numeric(params$premium) * as.numeric(params$sumInsured)` TZS.
+ </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; font-weight: bold;"> Maximum Payout </td>
+   <td style="text-align:right;"> The total maximum payout for the policy is the maximum percentage of the total sum insured that can be paid out by the insurance contract.
+
+The total maximum payout rate for the contract is `r as.numeric(params$maxPayout) *100` %.
+ </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; font-weight: bold;"> Exclusions </td>
+   <td style="text-align:right;"> This contract only covers the risk of drought. In the event the contract is triggered to pay out, the pastoralists in the covered area will be compensated to protect their livestock from the effects of forage scarcity due to drought.
+
+Other risks that the livestock is exposed to, for example, diseases and theft, are not covered under this contract.
+ </td>
+  </tr>
+</tbody>
+</table>

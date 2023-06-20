@@ -188,9 +188,13 @@ claimCalculator <- function(
       setNames(c("Year", "LR Season Payout", "SR Season Payout"))
     
     ### Outputs ###
-    # Create a dataframe for summary of the parameters
+    # Create a small dataframe for summary of the parameters to be displayed on UI
     sumParameters <- data.frame(uai, pattern, sumInsured, maxPayout)
     colnames(sumParameters) <- c("UAI", "Rainfall Pattern", "Sum Insured", "Maximum Payout")
+    
+    # Create a dataframe for summary of all the parameters
+    inputParameters  <- data.frame(uai, pattern, LRTrigger, LRExit, SRTrigger, SRExit, LRstartDate, LRendDate, SRstartDate, SRendDate, sumInsured, maxPayout)
+    colnames(inputParameters) <- c("UAI", "Rainfall Pattern", "LR Trigger", "LR Exit", "SR Trigger", "SR Exit", "LR Start Date", "LR End Date", "SR Start Date", "SR End Date", "Sum Insured", "Maximum Payout")
     
     # draw a stack bar graph for the long rains and short rains seasons payouts using plot_ly
     biFig <- plotly::plot_ly(payoutsCombo, x = ~Year,
@@ -215,7 +219,8 @@ claimCalculator <- function(
         payoutsPlotData = payoutsCombo,
         premiumRate = bimodalPremiumRate,
         claims = biClaims,
-        sumParameters = sumParameters
+        sumParameters = sumParameters,
+        inputParameters = inputParameters
       )
     )
     
@@ -315,10 +320,13 @@ claimCalculator <- function(
     
     ### Outputs ###
     
-    # Create a dataframe for summary of the parameters
+    # Create a small dataframe for summary of the parameters to be displayed on the UI
     sumParameters <- data.frame(uai, pattern, sumInsured, maxPayout)
     colnames(sumParameters) <- c("UAI", "Rainfall Pattern", "Sum Insured", "Maximum Payout")
     
+    # Create a dataframe for summary of all the parameters
+    inputParameters  <- data.frame(uai, pattern, RSTrigger, RSExit, RSstartDate, RSendDate, sumInsured, maxPayout)
+    colnames(inputParameters) <- c("UAI", "Rainfall Pattern", "RS Trigger", "RS Exit", "RS Start Date", "RS End Date", "Sum Insured", "Maximum Payout")
     
     # draw a bar graph for the rainy season payouts using plot_ly
     RSFig <- plotly::plot_ly(RSPayouts, x = ~Year,
@@ -345,7 +353,8 @@ claimCalculator <- function(
       payoutsPlotData = RSPayouts,
       premiumRate = unimodalPremiumRate,
       claims = uniClaims,
-      sumParameters = sumParameters
+      sumParameters = sumParameters,
+      inputParameters = inputParameters
     )
   )
 }

@@ -220,6 +220,7 @@ server <- function(input, output, session) {
   })
   
   #################################
+  ###### Outputs ######
   
   # call the function to calculate payouts + other outputs
   payoutFunc <- reactive({
@@ -267,12 +268,12 @@ server <- function(input, output, session) {
     shinydashboard::valueBox(
       "Premium Rate",
       paste(payoutFunc()$premiumRate * 100, '%', sep = ' '),
-      icon = icon("hand-holding dollar", verify_fa = FALSE),
+      icon = icon("hand-holding-dollar", verify_fa = FALSE),
       width = 2
     )
   })
 
-  # Downloadable csv of selected dataset ----
+  # Downloadable payouts of the selected uai as csv
   output$downloadpayouts <- downloadHandler(
     filename = function() {
       paste(input$uai, "historicalpayouts.csv", sep = "")
@@ -282,8 +283,49 @@ server <- function(input, output, session) {
     }
   )
   
+  # Downloadable summary of parameters of the selected uai as csv
+  output$downloadparams <- downloadHandler(
+    filename = function() {
+      paste(input$uai, "summaryparameters.csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(payoutFunc()$inputParameters, file, row.names = FALSE)
+    }
+  )
   
   # display table of params
   output$params <- renderTable(payoutFunc()$sumParameters, bordered = TRUE)
+  
+  # download termsheet
+  output$termsheet <- downloadHandler(
+    # For HTML output, change this to "termsheet.html"
+    filename = function() {
+      paste0(input$uai, "_", "termsheet", ".pdf", sep = "")
+    },
+    content = function(file) {
+      # # Copy the report file to a temporary directory before processing it, in
+      # # case we don't have write permissions to the current working dir (which
+      # # can happen when deployed).
+      tempReport <- file.path(tempdir(), "termsheetreport.Rmd")
+      file.copy("termsheetreport.Rmd", tempReport, overwrite = TRUE)
+
+      # Set up parameters to pass to Rmd document
+      params <- list(uai = uai(), trigger = triggerlevel(), exit = exitoption(),
+                     maxPayout = maxPayout(), pattern = pattern(),
+                     sumInsured = sumInsured(), premium = payoutFunc()$premiumRate)
+
+      # Knit the document, passing in the `params` list, and eval it in a
+      # child of the global environment (this isolates the code in the document
+      # from the code in this app).
+      # rmarkdown::render("termsheetreport.Rmd", output_file = file,
+      #                   params = params,
+      #                   envir = new.env(parent = globalenv())
+      # )
+      rmarkdown::render("termsheetreport.Rmd", output_file = file,
+                        params = params,
+                        envir = new.env(parent = globalenv())
+      )
+    }
+  )
   
 }
