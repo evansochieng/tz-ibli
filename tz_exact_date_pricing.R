@@ -270,7 +270,7 @@ LRMonthlyDekadAverages <- LRNDVIdata |>
 LRMonthlyDekadAverages <- LRMonthlyDekadAverages |>
   dplyr::select(-c(Month))
 
-# Aggregate LR season rainfall
+# Aggregate LR season NDVI
 LRSeasonalAggregate <- LRMonthlyDekadAverages |> 
   dplyr::summarise_all("sum") |>
   dplyr::mutate(dplyr::across(everything(), round, 4))
