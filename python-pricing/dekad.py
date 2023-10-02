@@ -133,3 +133,8 @@ class Dekad:
         
         # return the map
         return dekadMonthMap
+    
+    @classmethod
+    # Define a custom date parsing function
+    def custom_date_parser(cls, date_string=''):
+        return pd.to_datetime(date_string, format='%Y-%m-%d')
