@@ -124,3 +124,12 @@ class Dekad:
         
         # return the stacked dekads
         return stackedDekads
+    
+    # Map dekads to their respective months
+    @classmethod
+    def map_dekad_to_month(cls):
+        dekadMonthMap = np.repeat(range(1, 13), 3)
+        dekadMonthMap = {dekad: month for dekad, month in zip(range(1, 37), dekadMonthMap)}
+        
+        # return the map
+        return dekadMonthMap
