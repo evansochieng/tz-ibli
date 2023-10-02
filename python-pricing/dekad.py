@@ -1,6 +1,12 @@
+# import libraries
+import numpy as np
+
 # Create a class that returns a dekad from date
 
 class Dekad:
+    
+    # Define class variables
+    NUMDEKADS = 36
     
     # initialize variable date
     def __init__(self, date):
@@ -108,3 +114,13 @@ class Dekad:
                 
         # return the dekad
         return dekad
+    
+    
+    # stack the dekads together for the overlapping case
+    @classmethod
+    def stack_dekads(cls):
+        stackedDekads = np.array(range(1, cls.NUMDEKADS+1), dtype=int) # create an array of the index
+        stackedDekads = np.tile(stackedDekads, 2).astype(int) # repeat the entire array twice
+        
+        # return the stacked dekads
+        return stackedDekads
